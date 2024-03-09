@@ -150,4 +150,37 @@ void    Server::kickFunct(int i, std::string channelName, std::string clientNick
             }
         }
     }
+    sendFunct(clientArray[i].getSocketFd(), "No such channel or user!\r\n");
+
+}
+
+void Server::whoFunct(int whichClient, std::string token1, std::string token2) 
+{
+    int ch = whichChannel(token1);
+
+    if(ch == -1)
+        sendFunct(clientArray[whichClient].getSocketFd(), "there is no such channel");
+
+    else if (token2.empty() == 0)
+    {
+        for (int cl = 0; cl < (int)channelArray[ch].channelClients.size(); cl++)
+        {
+            sendFunct(clientArray[whichClient].getSocketFd(), "Nick: " + channelArray[ch].channelClients[cl].getNickname() + "\n");
+        }
+        sendFunct(clientArray[whichClient].getSocketFd(), (": 315 " +  clientArray[whichClient].getNickname() + ": End of WHO list\r\n"));
+        return ;
+    }
+    else
+    {
+        for (int cl = 0; cl < (int)channelArray[ch].channelClients.size(); cl++)
+        {
+            if(token2.compare(channelArray[ch].channelClients[cl].getNickname()) == 0)
+            {
+                sendFunct(clientArray[whichClient].getSocketFd(), "Nick: " + channelArray[ch].channelClients[cl].getNickname() + "\n");
+                sendFunct(clientArray[whichClient].getSocketFd(), "Username: " + channelArray[ch].channelClients[cl].getUsername() + "\n");
+                break ;
+            }
+        }
+    }
+    sendFunct(clientArray[whichClient].getSocketFd(), (": 315 " +  clientArray[whichClient].getNickname() + ": End of WHO list\r\n"));
 }

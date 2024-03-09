@@ -4,9 +4,14 @@
 
 #include <iostream>
 
+int err (std::string str) {
+    std::cout << str << std::endl;
+    return (1);
+}
+
 int main(int ac, char **av) {
 
-    if (ac != 3)
+    if (ac != 3) 
         return (err("Not enough parameters!"));
 
     Server server;

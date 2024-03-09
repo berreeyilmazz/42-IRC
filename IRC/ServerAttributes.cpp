@@ -17,88 +17,112 @@ void Server::clientIsset(int i) {
     std::istringstream iss(buffer);
     
     iss >> token;
-    
-    if (token == "USERPASS" && clientArray[i].getUserPass().empty()) { //user ilk kez giriyorsa
-        std::string userpass;
-        iss >> userpass;
-        if (!userpass.empty()) {
-            clientArray[i].setUserPass(userpass);
+    std::string token1, token2;
+    iss >> token1;
+    iss >> token2;
+    if (clientArray[i].getStatus() == "offline") 
+    {
+        if (token == "USERPASS" && clientArray[i].getUserPass().empty()) { //user ilk kez giriyorsa
+            if (!token1.empty()) {
+                clientArray[i].setUserPass(token1);
+                clientArray[i].setStatus("online");
+                sendFunct(clientArray[i].getSocketFd(), LOGIN(clientArray[i].getNickname(), clientArray[i].getUsername()));
+            }
+        }
+        else if (token == "USERPASS" && clientArray[i].getStatus() == "offline")
+        {
+            if (!token1.empty())
+                authenticateClient(i, token1);
+        }
+
+        else if(token =="PASS") 
+        {
+            if (token1.compare(password)) 
+                sendFunct(clientArray[i].getSocketFd(), "wrong password\r\n");
+            else
+                clientArray[i].setPassword(token1);
+        }
+
+        else if (token =="USER")
+            clientArray[i].setUsername(token1);
+
+        else if (token == "NICK") {
+            if (isNicknameInUse(token1) !=  -1)
+                clientArray[i].setNickname(token1);
+            else 
+                sendFunct(new_socket, NICKNAME_IN_USE(token1));
+        }
+
+        if ((clientArray[i].getUsername().empty() || clientArray[i].getNickname().empty() || clientArray[i].getPassword().empty()))
+            sendFunct(clientArray[i].getSocketFd(), "You should enter the server: USER <your user>    NICK <your nick>\r\n");
+
+        else if (!clientArray[i].getUsername().empty() && !clientArray[i].getNickname().empty() && !clientArray[i].getPassword().empty()) {
+
             clientArray[i].setStatus("online");
-            sendFunct(clientArray[i].getSocketFd(), LOGIN(clientArray[i].getNickname(), clientArray[i].getUsername()));
         }
     }
-    else if (token == "USERPASS" && clientArray[i].getStatus() == "offline") { // authenticationü
-        std::string userpass;
-        iss >> userpass;
-        if (!userpass.empty())
-            authenticateClient(i, userpass);
-    }
+
     else if (clientArray[i].getStatus() == "online")
     {
         if (token == "NOTICE");
         else if (token == "QUIT")
-         {
-            clientArray[i].setStatus("offline");
-            close(clientArray[i].getSocketFd());
-            if (new_socket != 0)
-                close(new_socket);
-            clientArray[i].setSocketFd(0);
-            //operator
-        }
+            somebodyLeft(clientArray[i]);
         else if (token == "CAP" || token == "PING");
-        else if (token == "JOIN") {
-            std::string channelName, channelPassword;
-            iss >> channelName;
-            iss >> channelPassword;
-            if (!channelName.empty() && !channelPassword.empty())
-                joinFunct(i, channelName, channelPassword);
+        else if (token == "JOIN") 
+        {
+            if (!token1.empty() && !token2.empty())
+                joinFunct(i, token1, token2);
             else
-                sendFunct(clientArray[i].getSocketFd(), "missing password\r\n"); // bu da böyle bisi
+                sendFunct(clientArray[i].getSocketFd(), "missing password\r\n");
         }
-
         else if (token == "PART") {
-            std::string partName;
-            iss >> partName;
-            partFunct(i, partName);
-        }
-        else if (token == "KICK") {
-            std::string channelName, clientNick;
-            iss >> channelName;
-            if (channelName[0] != '#')
-                channelName = "#" + channelName;
-            iss >> clientNick;
-            if (!channelName.empty() && !clientNick.empty())
-                kickFunct(i, channelName, clientNick);
 
+            if (!token1.empty())
+                partFunct(i, token1);
         }
-        else if (token == "PRIVMSG") {
-            std::string channelOrClient;
-            iss >> channelOrClient;
-            channelOrPrivMess(i, channelOrClient, buffer);
+        else if (token == "KICK") 
+        {
+            if (token1[0] != '#')
+                token1 = "#" + token1;
+            if (!token1.empty() && !token2.empty())
+                kickFunct(i, token1, token2);
         }
-
-        else if (token == "TOPIC") {
-            std::string temp, topicMessage, channelName;
-            iss >> channelName;
-            if (!channelName.empty() && channelName[0] != '#')
-                channelName = "#" + channelName;
+        else if (token == "PRIVMSG")
+            channelOrPrivMess(i, token1, buffer);
+        else if (token == "TOPIC") 
+        {
+            if (!token1.empty() && token1[0] != '#')
+                token1 = "#" + token1;
+            std::string temp;
             while (iss >> temp) {
-                topicMessage += temp;
-                topicMessage += " ";
+                token2 += temp;
+                token2 += " ";
             }
-            if (!topicMessage.empty() && !channelName.empty()) {
-                sendTopic(i, channelName, topicMessage);
+            if (!token1.empty() && !token2.empty()) {
+                sendTopic(i, token1, token2);
             }
         }
+        else if (token == "WHO") // WHO #kanal 
+            whoFunct(i, token1, token2);
+        else if (token == "help") 
+            sendFunct(clientArray[i].getSocketFd(), "JOIN / PART / PRIVMSG / TOPIC / KICK\r\n");
         /*
-        else if (token == "WHO"); // WHO #kanal
         else if (token == "MODE");  // MODE #kanal b || MODE #kanal
-        else
-            sendFunct(clientArray[i].getSocketFd(), "You should enter the server\r\n");
         */
     }
+
+    else if (token == "help")
+        sendFunct(clientArray[i].getSocketFd(), "You should enter the server: USERPASS <your userpass>\r\n");
+    else
+        sendFunct(clientArray[i].getSocketFd(), "You should enter the server\r\n");
+
 }
 
+void Server::addOnlyWithFd(int new_socket) {
+    clientArray.push_back(Client());
+    clientArray[clientArray.size() - 1].setSocketFd(new_socket);
+    sendFunct(new_socket, "Please enter your user and nickname: USER <your user>  /  NICK <your nick>\r\n");
+}
 
 int Server::areYouIn(int cl, int ch) {
     for (int i = 0; i < (int)channelArray[ch].channelClients.size(); i++)
@@ -130,7 +154,7 @@ void Server::sendTopic(int i, std::string channelName, std::string topicMessage)
             {
                 channelArray[j].setTopic(topicMessage);
                 for (int k = 0; k < (int)channelArray[j].channelClients.size(); k++) {
-                    std::string msg =  ": 332 " + channelArray[j].channelClients[k].getNickname() + " " + channelArray[j].getName() + " : " + channelArray[j].getTopic() + "\r\n";
+                    std::string msg =  ": 332 " + channelArray[j].channelClients[k].getNickname() + " " + channelArray[j].getName() + ":" + channelArray[j].getTopic() + "\r\n";
                     sendFunct(channelArray[j].channelClients[k].getSocketFd(), msg);
                 }
                 return;
@@ -141,5 +165,5 @@ void Server::sendTopic(int i, std::string channelName, std::string topicMessage)
         }
     }
     if (flag == 0)
-        sendFunct(clientArray[i].getSocketFd(),": 403 : " + clientArray[i].getNickname() + " There is no channel\r\n");
+        sendFunct(clientArray[i].getSocketFd(),": 403 : " + clientArray[i].getNickname() + " " + channelName+ " :There is no channel\r\n");
 }

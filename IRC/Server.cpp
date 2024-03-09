@@ -39,8 +39,7 @@ void    Server::createSocket() {
         close(server_fd);
         exit(EXIT_FAILURE);
     }
-    flags |= O_NONBLOCK;
-    if (fcntl(server_fd, F_SETFL, flags) == -1) {
+    if (fcntl(server_fd, F_SETFL, O_NONBLOCK) == -1) {
         std::cerr << "ERROR setting socket to non-blocking mode" << std::endl;
         close(server_fd);
         exit(EXIT_FAILURE);
@@ -73,12 +72,13 @@ void Server::detectIfTheyAreNew(std::string nick, std::string user, std::string 
     if (whichClient == -1) { 
         addClient(nick, user, pass, new_socket);
     }
-
     else {
         if (clientArray[whichClient].getStatus() == "online")
             sendFunct(new_socket, NICKNAME_IN_USE(clientArray[whichClient].getNickname()));
         else {
             clientArray[whichClient].setSocketFd(new_socket);
+            sendFunct(new_socket, " ::  : Please enter your password... /USERPASS <your userpass>\r\n");
+
         }
     }
 }
@@ -88,7 +88,6 @@ void Server::addClient(std::string nick, std::string user, std::string pass, int
     clientArray[(int)clientArray.size() - 1].setNickname(nick);
     clientArray[(int)clientArray.size() - 1].setUsername(user);
     clientArray[(int)clientArray.size() - 1].setPassword(pass);
-    clientArray[(int)clientArray.size() - 1].setSocketFd(fd);
     clientArray[(int)clientArray.size() - 1].setSocketFd(fd);
     sendFunct(clientArray[(int)clientArray.size() - 1].getSocketFd(), " ::  : Please enter your password... /USERPASS <your userpass>\r\n");
 }

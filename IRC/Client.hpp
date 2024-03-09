@@ -54,6 +54,6 @@ class Client {
         int getSocketFd();
 
 };
-int err (std::string str);
+
 
 #endif

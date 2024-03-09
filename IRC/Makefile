@@ -1,6 +1,6 @@
 FILES = *.cpp
 COMPILER = c++
-FLAGS = -std=c++98 -Wall -Wextra -Werror -fsanitize=address
+FLAGS = -std=c++98 -Wall -Wextra -Werror 
 OUTPUT_NAME = IRC_SERVER
 
 all:

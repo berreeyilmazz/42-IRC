@@ -24,7 +24,8 @@ int isSet(Server &server)
             perror("select error");
         if (FD_ISSET(server.getServerFd(), &readfds)) {
             server.newClient();
-            serverIsSet(server);
+            if (serverIsSet(server) == 1)
+                server.addOnlyWithFd(server.getNewSocket());
         }
         for (int i = 0; i < (int)server.getClientArray().size(); i++){
             if (FD_ISSET(server.getClientArray()[i].getSocketFd(), &readfds)){
@@ -62,17 +63,16 @@ int serverIsSet(Server &server) {
             while (iss >> token) {
                 if (token == "NICK")
                     iss >> nick;
-                else if (token == "PASS")
+                else if (token == "PASS") {
                     iss >> pass;
+                    if (pass.compare(server.getPassword())) 
+                        server.sendFunct(server.getNewSocket(), ERR_PASSWDMISMATCH(nick));
+                    return (1);
+                }
                 else if (token == "USER")
                     iss >> user;
             }
             if (pass.empty() == 0 && nick.empty() == 0 && user.empty() == 0) {
-                if (!pass.compare(server.getPassword())) {
-                    server.sendFunct(server.getNewSocket(), ERR_PASSWDMISMATCH(nick));
-                    server.setNewSocket(0);
-                    break;
-                }
                 server.detectIfTheyAreNew(nick, user, pass);
                 break;
             }

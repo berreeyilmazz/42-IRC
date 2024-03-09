@@ -22,6 +22,7 @@
 #include "Channel.hpp"
 #include "Messages.hpp"
 
+
 class Server {
     private:
         std::string hostname;
@@ -83,7 +84,10 @@ class Server {
         std::string getPassword(void);
         void        setPassword(std::string password);
         void        partFunct(int i, std::string partName);
-        void        activateChannels(int whichClient); 
+        void        activateChannels(int whichClient);
+        void        whoFunct(int whichClient, std::string token1, std::string token2);
+        void        addOnlyWithFd(int new_socket);
+
 };
 
 int serverIsSet(Server &server);
