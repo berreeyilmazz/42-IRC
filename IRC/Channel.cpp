@@ -39,11 +39,12 @@ std::string Channel::getTopic() {
     return (_topic);
 }
 
-void Channel::setOperator(int operatorFd) {
-    this->_operator = operatorFd;
+void Channel::setOperator(int indx, int op) 
+{
+    this->_operator[indx] = op;
 }
 
-int Channel::getOperator() {
+std::vector<int> Channel::getOperator() {
     return (this->_operator);
 }
 
@@ -51,6 +52,28 @@ Channel::Channel(){
     
 }
 
-
-
 Channel::~Channel(){}
+
+void Channel::addOperator(int op) {
+    for (int i = 0; i < (int)_operator.size(); i++) {
+        if (_operator[i] == op)
+        {
+            return;
+        }
+    }
+    _operator.push_back(op);
+
+}
+
+void    Channel::eraseOperator(int op) {
+    channelClients.erase(channelClients.begin() + op);
+}
+
+int Channel::areYouOperator(int i) {
+    for (int o = 0; o < (int)getOperator().size(); o++) 
+    {
+        if (_operator[o] == i)
+            return (o);
+    }
+    return (-1);
+}

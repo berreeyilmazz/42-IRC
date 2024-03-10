@@ -69,16 +69,17 @@ void Server::newClient() {
 void Server::detectIfTheyAreNew(std::string nick, std::string user, std::string pass) {
     int whichClient = isNicknameInUse(nick);
 
-    if (whichClient == -1) { 
+    if (whichClient == -1 || whichClient == -2) { 
         addClient(nick, user, pass, new_socket);
     }
     else {
         if (clientArray[whichClient].getStatus() == "online")
             sendFunct(new_socket, NICKNAME_IN_USE(clientArray[whichClient].getNickname()));
         else {
+            printf("which_client %d   ,new_socket: %d\n",whichClient, clientArray[whichClient].getSocketFd());
+
             clientArray[whichClient].setSocketFd(new_socket);
             sendFunct(new_socket, " ::  : Please enter your password... /USERPASS <your userpass>\r\n");
-
         }
     }
 }
@@ -100,19 +101,22 @@ int Server::isNicknameInUse(std::string _nick) {
         if (!clientArray[i].getNickname().compare(_nick))
             return (i);
     }
-    return (-1);
+    return (-2);
 }
 
 void Server::authenticateClient(int whichClient, std::string userpass) 
 {
-    if (!clientArray[whichClient].getUserPass().compare(userpass)) {
+    if (clientArray[whichClient].getUserPass().compare(userpass)) {
         clientArray[whichClient].setSocketFd(new_socket);
         activateChannels(whichClient);
         clientArray[whichClient].setStatus("online");
+    //    buraya opeator listesindeysek addOperator çağrılacak
         sendFunct(clientArray[whichClient].getSocketFd(), LOGIN(clientArray[whichClient].getNickname(), clientArray[whichClient].getUsername()));
     }
     else
         sendFunct(clientArray[whichClient].getSocketFd(),": : wrong password\r\n");
+
+
 }
 
 void Server::activateChannels(int whichClient) {
@@ -126,39 +130,25 @@ void Server::activateChannels(int whichClient) {
     }
 }
 
-
-int Server::somebodyLeft(Client &client) {
+int Server::somebodyLeft(int i) 
+{
+    for (int ch = 0; ch < (int)channelArray.size(); ch++) 
     
-    for (int i = 0; i < (int)channelArray.size(); i++) 
-    {
-        if (channelArray[i].getOperator() == client.getSocketFd())
+        for (int op = 0; op < (int)channelArray[ch].getOperator().size(); op++)
         {
-            if ((int)channelArray[i].channelClients.size() > i)
+            if (channelArray[ch].getOperator()[op] != -1)
             {
-                for (int j = i + 1; j < (int)channelArray[i].channelClients.size(); j++) 
+                int sze = (int)channelArray[ch].getOperator().size();
+                if (sze == 1)
                 {
-                    if (channelArray[i].channelClients[j].getStatus() == "online")
-                    {
-                        channelArray[i].setOperator(channelArray[i].channelClients[j].getSocketFd());
-                    }
+                    channelArray[ch].addOperator(i + 1);
                 }
-                
-            }
-            else 
-            {
-                for (int j = i - 1; j > 0; j--) 
-                {
-                    if (channelArray[i].channelClients[j].getStatus() == "online")
-                    {
-                        channelArray[i].setOperator(channelArray[i].channelClients[j].getSocketFd());
-                    }
-                }
-            }
+            }    
         }
-    }
-    client.setStatus("offline");
-    close(client.getSocketFd());
-    client.setSocketFd(0);
+
+
+    clientArray[i].setStatus("offline");
+    close(clientArray[i].getSocketFd());
+    clientArray[i].setSocketFd(0);
     return 1;
 }
-

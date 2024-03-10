@@ -7,7 +7,7 @@ void Server::joinFunct(int whichClient,std::string channelName, std::string chan
     std::string mess;
     if((int)channelArray.size() == 0) {
         channelArray.push_back(Channel(channelName, channelPassword, clientArray[whichClient])); // ***
-        channelArray[0].setOperator(clientArray[whichClient].getSocketFd());
+        channelArray[0].addOperator(whichClient);
         mess = "JOIN You are now in channel "  + channelName +" \r\n";
 
     }
@@ -31,6 +31,7 @@ void Server::joinFunct(int whichClient,std::string channelName, std::string chan
                     if((!channelArray[i].getPassword().compare(channelPassword)))
                     { 
                         channelArray[i].channelClients.push_back(clientArray[whichClient]);
+
                         mess = "JOIN You are now in channel "  + channelName +" \r\n";
                     }
                     else
@@ -42,7 +43,7 @@ void Server::joinFunct(int whichClient,std::string channelName, std::string chan
         }
         if(controlFlag2 == -1) {
             channelArray.push_back(Channel(channelName, channelPassword, clientArray[whichClient]));
-            channelArray[(int)channelArray.size() - 1].setOperator(clientArray[whichClient].getSocketFd());
+            channelArray[(int)channelArray.size() - 1].addOperator(whichClient);
             mess = "JOIN You are now in channel "  + channelName +" \r\n";
         }
     }
@@ -138,7 +139,7 @@ void    Server::kickFunct(int i, std::string channelName, std::string clientNick
         {
             for (int c = 0; c < (int)channelArray[j].channelClients.size(); c++) 
             {
-                if ((clientNick == channelArray[j].channelClients[c].getNickname()) && (channelArray[j].getOperator() == clientArray[i].getSocketFd())) 
+                if ((clientNick == channelArray[j].channelClients[c].getNickname()) && (channelArray[j].areYouOperator(i) != 1))
                 {
                     std::string kickerMessage = ": 441 " + clientArray[i].getNickname() + " : you kicked " + clientNick + "\r\n";
                     std::string kickedMessage = ": 441 " + clientNick + " : you are kicked from " + channelArray[j].getName() + "\r\n";
@@ -183,4 +184,34 @@ void Server::whoFunct(int whichClient, std::string token1, std::string token2)
         }
     }
     sendFunct(clientArray[whichClient].getSocketFd(), (": 315 " +  clientArray[whichClient].getNickname() + ": End of WHO list\r\n"));
+}
+
+void Server::modeFunct(int i, std::string token1, std::string token2) {
+    if (token1[0] != '#') {
+        sendFunct(clientArray[i].getSocketFd(), "The second parameter should be like that : #channelName\r\n");
+        return;
+    }
+    int whichChannel = this->whichChannel(token1);
+    if (whichChannel == -1) {
+        sendFunct(clientArray[i].getSocketFd(), "No such channel\r\n");
+        return;
+    }
+    for (int o = 0; o < (int)channelArray[whichChannel].getOperator().size(); o++) 
+    {
+        if (channelArray[whichChannel].areYouOperator(i) != -1) 
+        {
+            for (int n = 0; (int)channelArray[whichChannel].channelClients.size(); n++)
+            {
+                if (token2 == channelArray[whichChannel].channelClients[n].getNickname()) {
+                    channelArray[whichChannel].addOperator(n);
+                    sendFunct(clientArray[i].getSocketFd(), "successfully\r\n");
+                    sendFunct(clientArray[n].getSocketFd(), "You are operator now.\r\n");
+                    return;
+                }
+            }
+            sendFunct(clientArray[i].getSocketFd(), "this person is not a client of the channel.\r\n");
+            return;
+        }
+    }
+    sendFunct(clientArray[i].getSocketFd(), "You are not operator of this channel.\r\n");
 }

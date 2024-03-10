@@ -20,53 +20,12 @@ void Server::clientIsset(int i) {
     std::string token1, token2;
     iss >> token1;
     iss >> token2;
-    if (clientArray[i].getStatus() == "offline") 
-    {
-        if (token == "USERPASS" && clientArray[i].getUserPass().empty()) { //user ilk kez giriyorsa
-            if (!token1.empty()) {
-                clientArray[i].setUserPass(token1);
-                clientArray[i].setStatus("online");
-                sendFunct(clientArray[i].getSocketFd(), LOGIN(clientArray[i].getNickname(), clientArray[i].getUsername()));
-            }
-        }
-        else if (token == "USERPASS" && clientArray[i].getStatus() == "offline")
-        {
-            if (!token1.empty())
-                authenticateClient(i, token1);
-        }
 
-        else if(token =="PASS") 
-        {
-            if (token1.compare(password)) 
-                sendFunct(clientArray[i].getSocketFd(), "wrong password\r\n");
-            else
-                clientArray[i].setPassword(token1);
-        }
-
-        else if (token =="USER")
-            clientArray[i].setUsername(token1);
-
-        else if (token == "NICK") {
-            if (isNicknameInUse(token1) !=  -1)
-                clientArray[i].setNickname(token1);
-            else 
-                sendFunct(new_socket, NICKNAME_IN_USE(token1));
-        }
-
-        if ((clientArray[i].getUsername().empty() || clientArray[i].getNickname().empty() || clientArray[i].getPassword().empty()))
-            sendFunct(clientArray[i].getSocketFd(), "You should enter the server: USER <your user>    NICK <your nick>\r\n");
-
-        else if (!clientArray[i].getUsername().empty() && !clientArray[i].getNickname().empty() && !clientArray[i].getPassword().empty()) {
-
-            clientArray[i].setStatus("online");
-        }
-    }
-
-    else if (clientArray[i].getStatus() == "online")
+    if (clientArray[i].getStatus() == "online")
     {
         if (token == "NOTICE");
         else if (token == "QUIT")
-            somebodyLeft(clientArray[i]);
+            somebodyLeft(i);
         else if (token == "CAP" || token == "PING");
         else if (token == "JOIN") 
         {
@@ -105,23 +64,63 @@ void Server::clientIsset(int i) {
         else if (token == "WHO") // WHO #kanal 
             whoFunct(i, token1, token2);
         else if (token == "help") 
-            sendFunct(clientArray[i].getSocketFd(), "JOIN / PART / PRIVMSG / TOPIC / KICK\r\n");
-        /*
-        else if (token == "MODE");  // MODE #kanal b || MODE #kanal
-        */
+            sendFunct(clientArray[i].getSocketFd(), "JOIN / PART / PRIVMSG / KICK\r\n");
+        else if (token == "MODE")  // MODE #kanal b || MODE #kanal
+            modeFunct(i, token1, token2);
     }
+    else if (!clientArray[i].getUsername().empty() && !clientArray[i].getNickname().empty() && !clientArray[i].getPassword().empty())
+    {
+        if (token == "USERPASS" && clientArray[i].getUserPass().empty()) { //user ilk kez giriyorsa
+            if (!token1.empty()) {
+                clientArray[i].setUserPass(token1);
+                clientArray[i].setStatus("online");
+                sendFunct(clientArray[i].getSocketFd(), LOGIN(clientArray[i].getNickname(), clientArray[i].getUsername()));
+            }
+        }
+        else if (token == "USERPASS" && clientArray[i].getStatus() == "offline")
+        {
+            if (!token1.empty()) {
+                authenticateClient(i, token1);
+            }
+        }
+    }
+    else if (clientArray[i].getStatus() == "offline") 
+    {
+        if(token =="PASS")
+        {
+            if (token1.compare(password)) 
+                sendFunct(clientArray[i].getSocketFd(), "wrong password\r\n");
+            else
+                clientArray[i].setPassword(token1);
+        }
+        else if (token == "NICK" && clientArray[i].getNickname().empty()) 
+        {
+            if (isNicknameInUse(token1) == -1 || isNicknameInUse(token1) == -2)
+                clientArray[i].setNickname(token1);
+            else {
+            //    erase
+                sendFunct(new_socket, NICKNAME_IN_USE(token1));
+            }
+        }
+        else if (token == "USER")
+             clientArray[i].setUsername(token1);
 
+        if (!clientArray[i].getUsername().empty() && !clientArray[i].getNickname().empty() && !clientArray[i].getPassword().empty() && !clientArray[i].getUserPass().empty()) {
+               clientArray[i].setStatus("online");
+        }
+    }
     else if (token == "help")
         sendFunct(clientArray[i].getSocketFd(), "You should enter the server: USERPASS <your userpass>\r\n");
     else
         sendFunct(clientArray[i].getSocketFd(), "You should enter the server\r\n");
+    printf("clientsize: %d\n", (int)clientArray.size());
 
 }
 
-void Server::addOnlyWithFd(int new_socket) {
+void Server::addOnlyWithFd(int nw) {
     clientArray.push_back(Client());
-    clientArray[clientArray.size() - 1].setSocketFd(new_socket);
-    sendFunct(new_socket, "Please enter your user and nickname: USER <your user>  /  NICK <your nick>\r\n");
+    clientArray[clientArray.size() - 1].setSocketFd(nw);
+    sendFunct(nw, "Please enter server pass, your user and nickname: PASS <password> / USER <your user>  /  NICK <your nick>\r\n");
 }
 
 int Server::areYouIn(int cl, int ch) {
@@ -150,7 +149,7 @@ void Server::sendTopic(int i, std::string channelName, std::string topicMessage)
         if (channelName == channelArray[j].getName()) 
         {
             flag = 1;
-            if (clientArray[i].getSocketFd() == channelArray[j].getOperator())
+            if (channelArray[j].areYouOperator(i) != 1)
             {
                 channelArray[j].setTopic(topicMessage);
                 for (int k = 0; k < (int)channelArray[j].channelClients.size(); k++) {

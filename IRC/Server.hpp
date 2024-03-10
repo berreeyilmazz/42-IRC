@@ -45,7 +45,6 @@ class Server {
         int         start(char *av1, char *av2);
         void        printPort();
         void        createSocket();
-        int         somebodyLeft(Client &client);
         void        newClient();
         void        detectIfTheyAreNew(std::string nick, std::string user, std::string pass);
         int         isNicknameInUse(std::string _nick);
@@ -87,10 +86,13 @@ class Server {
         void        activateChannels(int whichClient);
         void        whoFunct(int whichClient, std::string token1, std::string token2);
         void        addOnlyWithFd(int new_socket);
+        void        modeFunct(int i, std::string token1, std::string token2);
+        int         matchClient(int  ch, int clIndx);
+        int         somebodyLeft(int i);
+
 
 };
 
-int serverIsSet(Server &server);
 int isSet(Server &server);
 
 #endif
