@@ -39,12 +39,14 @@ std::string Channel::getTopic() {
     return (_topic);
 }
 
-void Channel::setOperator(int indx, int op) 
+void Channel::setOperator(Client &ref) 
 {
-    this->_operator[indx] = op;
+    _operator.push_back(Client());
+    _operator[_operator.size() - 1].setNickname(ref.getNickname());
+    _operator[_operator.size() - 1].setSocketFd(ref.getSocketFd());
 }
 
-std::vector<int> Channel::getOperator() {
+std::vector<Client> Channel::getOperator() {
     return (this->_operator);
 }
 
@@ -55,13 +57,18 @@ Channel::Channel(){
 Channel::~Channel(){}
 
 void Channel::addOperator(int op) {
+    /*
     for (int i = 0; i < (int)_operator.size(); i++) {
         if (_operator[i] == op)
         {
             return;
         }
     }
+    printf("giriş\n");
     _operator.push_back(op);
+    */
+    (void)op;
+    printf("çıkış\n");
 
 }
 
@@ -69,10 +76,12 @@ void    Channel::eraseOperator(int op) {
     channelClients.erase(channelClients.begin() + op);
 }
 
-int Channel::areYouOperator(int i) {
+
+// compare 1 dönüyosa aynılar
+int Channel::areYouOperator(std::string nick) {
     for (int o = 0; o < (int)getOperator().size(); o++) 
     {
-        if (_operator[o] == i)
+        if (_operator[o].getNickname().compare(nick))
             return (o);
     }
     return (-1);

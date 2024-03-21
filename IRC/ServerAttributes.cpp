@@ -66,7 +66,7 @@ void Server::clientIsset(int i) {
         else if (token == "help") 
             sendFunct(clientArray[i].getSocketFd(), "JOIN / PART / PRIVMSG / KICK\r\n");
         else if (token == "MODE")  // MODE #kanal b || MODE #kanal
-            modeFunct(i, token1, token2);
+             modeFunct(i, token1, token2);
     }
     else if (!clientArray[i].getUsername().empty() && !clientArray[i].getNickname().empty() && !clientArray[i].getPassword().empty())
     {
@@ -149,7 +149,7 @@ void Server::sendTopic(int i, std::string channelName, std::string topicMessage)
         if (channelName == channelArray[j].getName()) 
         {
             flag = 1;
-            if (channelArray[j].areYouOperator(i) != 1)
+            if (channelArray[j].areYouOperator(clientArray[i].getNickname()) != 1)
             {
                 channelArray[j].setTopic(topicMessage);
                 for (int k = 0; k < (int)channelArray[j].channelClients.size(); k++) {

@@ -11,7 +11,8 @@ void Server::joinFunct(int whichClient,std::string channelName, std::string chan
         mess = "JOIN You are now in channel "  + channelName +" \r\n";
 
     }
-    else {
+    else
+    {
         int controlFlag1 = -1;
         int controlFlag2 = -1;
         for (int i = 0; i < (int)channelArray.size(); i++)
@@ -47,8 +48,10 @@ void Server::joinFunct(int whichClient,std::string channelName, std::string chan
             mess = "JOIN You are now in channel "  + channelName +" \r\n";
         }
     }
+    printf("giriş2\n");
     std::string buffer = ":" + clientArray[whichClient].getNickname() + "!" + clientArray[whichClient].getUsername() + "@" + getHostname() + ": "  +  mess + "\r\n";;
     sendFunct(clientArray[whichClient].getSocketFd(),buffer);
+    printf("çıkış2\n");
 }
 
 
@@ -139,7 +142,7 @@ void    Server::kickFunct(int i, std::string channelName, std::string clientNick
         {
             for (int c = 0; c < (int)channelArray[j].channelClients.size(); c++) 
             {
-                if ((clientNick == channelArray[j].channelClients[c].getNickname()) && (channelArray[j].areYouOperator(i) != 1))
+                if ((clientNick == channelArray[j].channelClients[c].getNickname()) && (channelArray[j].areYouOperator(clientArray[i].getNickname()) != 1))
                 {
                     std::string kickerMessage = ": 441 " + clientArray[i].getNickname() + " : you kicked " + clientNick + "\r\n";
                     std::string kickedMessage = ": 441 " + clientNick + " : you are kicked from " + channelArray[j].getName() + "\r\n";
@@ -198,14 +201,17 @@ void Server::modeFunct(int i, std::string token1, std::string token2) {
     }
     for (int o = 0; o < (int)channelArray[whichChannel].getOperator().size(); o++) 
     {
-        if (channelArray[whichChannel].areYouOperator(i) != -1) 
+        if (channelArray[whichChannel].areYouOperator(clientArray[i].getNickname()) != -1) 
         {
             for (int n = 0; (int)channelArray[whichChannel].channelClients.size(); n++)
             {
                 if (token2 == channelArray[whichChannel].channelClients[n].getNickname()) {
-                    channelArray[whichChannel].addOperator(n);
-                    sendFunct(clientArray[i].getSocketFd(), "successfully\r\n");
-                    sendFunct(clientArray[n].getSocketFd(), "You are operator now.\r\n");
+                    channelArray[whichChannel].setOperator(channelArray[whichChannel].channelClients[n]);
+                    return;
+                }
+                else if ((int)channelArray[whichChannel].getOperator().size() == 0)
+                {
+                    channelArray[whichChannel].setOperator(channelArray[whichChannel].channelClients[n]);
                     return;
                 }
             }

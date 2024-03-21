@@ -8,10 +8,10 @@ class Client;
 
 class Channel{
     private:
-        std::string         _name;
-        std::string         _password;
-        std::string         _topic;
-        std::vector<int>   _operator;
+        std::string             _name;
+        std::string             _password;
+        std::string             _topic;
+        std::vector<Client>     _operator;
 
     public:
         Channel(std::string name, std::string password, Client &client);
@@ -27,10 +27,10 @@ class Channel{
         void setTopic(std::string topic);
         std::string getTopic();
 
-        void setOperator(int indx, int operatorFd);
-        std::vector<int>     getOperator();
+        void setOperator(Client &ref);
+        std::vector<Client>   getOperator();
         void    eraseOperator(int op);
-        int     areYouOperator(int i);
+        int     areYouOperator(std::string nick);
         void    addOperator(int op);
 
 

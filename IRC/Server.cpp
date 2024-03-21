@@ -104,9 +104,10 @@ int Server::isNicknameInUse(std::string _nick) {
     return (-2);
 }
 
+// compare 1 dönüyosa aynılar
 void Server::authenticateClient(int whichClient, std::string userpass) 
 {
-    if (clientArray[whichClient].getUserPass().compare(userpass)) {
+    if (clientArray[whichClient].getUserPass().compare(userpass)) { 
         clientArray[whichClient].setSocketFd(new_socket);
         activateChannels(whichClient);
         clientArray[whichClient].setStatus("online");
@@ -129,9 +130,10 @@ void Server::activateChannels(int whichClient) {
         }
     }
 }
-
 int Server::somebodyLeft(int i) 
 {
+    (void)i;
+/*
     for (int ch = 0; ch < (int)channelArray.size(); ch++) 
     
         for (int op = 0; op < (int)channelArray[ch].getOperator().size(); op++)
@@ -150,5 +152,6 @@ int Server::somebodyLeft(int i)
     clientArray[i].setStatus("offline");
     close(clientArray[i].getSocketFd());
     clientArray[i].setSocketFd(0);
+*/
     return 1;
 }
