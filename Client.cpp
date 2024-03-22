@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(){
-    this->status = "offline";
+    flag = 0;
 }
 
 Client::~Client(){}
@@ -18,18 +18,6 @@ void Client::setPassword(std::string password){
     this->password = password;
 }
 
-void Client::setPersonalPass(std::string personalPass){
-    this->personalPass = personalPass;
-}
-
-void Client::setStatus(std::string status){
-    this->status = status;
-}
-
-void Client::setUserPass(std::string userPass){
-    this->userPass = userPass;
-}
-
 std::string Client::getNickname() {
     return (this->nickname);
 }
@@ -41,21 +29,6 @@ std::string Client::getUsername() {
 std::string Client::getPassword() {
 
     return (this->password);
-}
-
-std::string Client::getPersonalPass() {
-
-    return (this->personalPass);
-}
-
-std::string Client::getStatus() {
-
-    return (this->status);
-}
-
-std::string Client::getUserPass() {
-
-    return (this->userPass);
 }
 
 void Client::setSocketFd(int i) {
@@ -70,7 +43,6 @@ std::string Client::getRealName() {
     return (this->realName);
 }
 
-
 void Client::setHost(std::string _host) {
     this->host = _host;
 }
@@ -83,3 +55,10 @@ int Client::getSocketFd() {
     return(socket_fd);
 }
 
+int Client::getFlag() {
+    return (this->flag);
+}
+
+void Client::setFlag(int i) {
+    flag = i;
+}

@@ -1,6 +1,5 @@
 #include "Client.hpp"
 #include "Server.hpp"
-#include "Channel.hpp"
 
 #include <iostream>
 
@@ -8,6 +7,7 @@ int err (std::string str) {
     std::cout << str << std::endl;
     return (1);
 }
+
 
 int main(int ac, char **av) {
 
@@ -18,5 +18,5 @@ int main(int ac, char **av) {
     if (server.start(av[1], av[2]))
         return (err("Wrong port!"));
     server.createSocket();
-    isSet(server);
+    server.running();
 }

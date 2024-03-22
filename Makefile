@@ -1,7 +1,7 @@
 FILES = *.cpp
 COMPILER = c++
 FLAGS = -std=c++98 -Wall -Wextra -Werror 
-OUTPUT_NAME = IRC_SERVER
+OUTPUT_NAME = IRC
 
 all:
 	$(COMPILER) $(FLAGS) $(FILES) -o $(OUTPUT_NAME)

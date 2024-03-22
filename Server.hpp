@@ -1,27 +1,9 @@
- #ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <fstream>
-#include <arpa/inet.h>
-#include <vector>
-#include <algorithm>
-#include <iterator>
-#include <sstream>
-
-#include <string>
-#include <iostream>
 #include <fcntl.h>
-
+#include "Messages.hpp"
 #include "Client.hpp"
 #include "Channel.hpp"
-#include "Messages.hpp"
-
 
 class Server {
     private:
@@ -36,46 +18,37 @@ class Server {
         int         opt;
         socklen_t addrlen;
         struct sockaddr_in address;
-
         std::vector<Client> clientArray;
         std::vector<Channel> channelArray;
+        
     public:
-        void        setHostname(std::string _host);
-        std::string getHostname();
-        int         start(char *av1, char *av2);
-        void        printPort();
-        void        createSocket();
-        void        newClient();
-        void        detectIfTheyAreNew(std::string nick, std::string user, std::string pass);
+
+        void        connectToNewClient(int n_socket);
+        void        info(int i);
+        void        running();
         int         isNicknameInUse(std::string _nick);
-        void        addClient(std::string nick, std::string user, std::string pass, int fd);
+        void        commands(int i);
+        void        join(int i, std::string channelName, std::string channelPass);
+        void        part(int i, std::string channelName);
+
+
+
+        std::string getHostname();
+        void        setHostname(std::string _host);
+        int         start(char *av1, char *av2);
+        void        createSocket();
+
+        void        newClient();
+        void        addClient(int i);
         void        sendFunct(int fd, std::string raw);
-        void        authenticateClient(int whichClient, std::string userpass);
-        void        clientIsset(int i);
+/*
+        int         isNicknameInUse(std::string _nick);
         void        joinFunct(int whichClient,std::string channelName, std::string channelPassword);
         void        kickFunct(int i, std::string channelName, std::string clientNick);
         void        sendTopic(int i, std::string channelName, std::string topicMessage);
         void        channelOrPrivMess(int i, std::string channelOrClient, std::string buffer);
         int         whichChannel(std::string channelName);
         int         areYouIn(int cl, int ch);
-        int         getPort(void);
-        void        setPort(int port);
-        int         getServerFd(void);
-        void        setServerFd(int server_fd);
-        int         getNewSocket(void);
-        void        setNewSocket(int new_socket);
-        int         getActivity(void);
-        void        setActivity(int activity);
-        int         getMaxSd(void);
-        void        setMaxSd(int max_sd);
-        int         getValRead(void);
-        void        setValRead(int valread);
-        int         getOpt(void);
-        void        setOpt(int opt);
-        socklen_t   getAddrLen(void);
-        void        setAddrLen(socklen_t addrlen);
-        struct sockaddr_in getAddress(void);
-        void        setAddress(struct sockaddr_in address);
         std::vector<Client> getClientArray(void);
         void        setClientArray(std::vector<Client> clientArray);
         std::vector<Channel> getChannelArray(void);
@@ -83,16 +56,11 @@ class Server {
         std::string getPassword(void);
         void        setPassword(std::string password);
         void        partFunct(int i, std::string partName);
-        void        activateChannels(int whichClient);
         void        whoFunct(int whichClient, std::string token1, std::string token2);
         void        addOnlyWithFd(int new_socket);
         void        modeFunct(int i, std::string token1, std::string token2);
         int         matchClient(int  ch, int clIndx);
-        int         somebodyLeft(int i);
-
+*/
 
 };
 
-int isSet(Server &server);
-
-#endif

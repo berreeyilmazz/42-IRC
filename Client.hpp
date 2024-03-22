@@ -14,9 +14,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sstream>
-#include "Channel.hpp"
-
-class Channel;
+#include <string>
 
 class Client {
     private:
@@ -25,10 +23,9 @@ class Client {
         std::string realName;
         std::string host;
         std::string password;
-        std::string personalPass;
-        std::string status;
-        std::string userPass;
         int         socket_fd;
+        int     flag;
+
     public:
         Client();
         ~Client();
@@ -37,21 +34,17 @@ class Client {
         void setPassword(std::string _password);
         void setRealName(std::string _realName);
         void setHost(std::string _host);
-        void setPersonalPass(std::string personalPass);
-        void setStatus(std::string status);
-        void setUserPass(std::string userPass);
 
         std::string getNickname();
         std::string getUsername();
         std::string getRealName();
         std::string getHost();
         std::string getPassword();
-        std::string getPersonalPass();
-        std::string getStatus();
-        std::string getUserPass();
 
         void setSocketFd(int i);
         int getSocketFd();
+        int getFlag();
+        void setFlag(int i);
 
 };
 
